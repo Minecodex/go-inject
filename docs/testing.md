@@ -66,3 +66,8 @@ Opaque context tests exercise runtime storage, snapshot callbacks and typed brid
 ## Scope of the beta
 
 These tests validate the generic injection tool. They do not establish SkyWalking Agent compatibility, trace delivery, context propagation, telemetry performance, or OAP integration. Such integrations need their own runtime and end-to-end acceptance suites.
+
+
+## Required pull request checks
+
+The stable `CI` check aggregates the complete native and race matrices. See [pull requests and required CI](ci_EN.md).

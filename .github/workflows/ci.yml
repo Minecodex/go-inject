@@ -2,7 +2,10 @@ name: CI
 
 on:
   push:
+    branches: [master]
+    tags: ['v*', 'examples/rules/v*']
   pull_request:
+    branches: [master]
   workflow_dispatch:
 
 permissions:
@@ -108,3 +111,33 @@ jobs:
         run: python scripts/check_toolchain.py --go-version "${{ matrix.go }}" --goos "${{ matrix.platform.goos }}" --goarch "${{ matrix.platform.goarch }}" --cgo 1
       - name: Core, transaction, and process race tests
         run: go test -race -timeout=30m ./internal/...
+
+  ci-gate:
+    name: CI
+    if: ${{ always() }}
+    needs: ["native", "race"]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every mandatory job to succeed
+        env:
+          JOB_RESULTS: ${{ toJSON(needs) }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import sys
+
+          optional = set([])
+          jobs = json.loads(os.environ["JOB_RESULTS"])
+          failed = {
+              name: job["result"]
+              for name, job in jobs.items()
+              if job["result"] != "success"
+              and not (name in optional and job["result"] == "skipped")
+          }
+          if failed:
+              print(f"Required CI jobs did not succeed: {failed}")
+              sys.exit(1)
+          print("All mandatory CI jobs passed.")
+          PY
