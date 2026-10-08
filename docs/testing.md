@@ -59,6 +59,8 @@ Native CI uses verbose test output to retain cold/warm build times, compilation 
 
 ## Native integration regressions
 
+The daemon lifecycle fixture publishes its readiness marker by renaming a fully written PID file. File existence alone must not expose an empty PID before the child finishes writing. The test still verifies the daemon's cache working directory, immediate application-directory removal, and shutdown after the parent Go command exits.
+
 The E2E suite also covers imported/generic aliases, constant array lengths, generic receivers, real main helpers and internal test files. Vendor tests exercise generation, invalid-code rejection before directory delivery, relocation to another checkout, restoration, edited input protection and recovery around initial directory delivery. Compatible native entries share code; conflicting entry outputs fail. Coverage flags and injected dependency archives are exercised through native go test.
 
 Opaque context tests exercise runtime storage, snapshot callbacks and typed bridges to added runtime functions without depending on a telemetry vendor. They are primitive-level evidence, not an agent compatibility claim.
