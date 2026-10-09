@@ -1,6 +1,11 @@
 name: Remote installation
 
 on:
+  workflow_call:
+    inputs:
+      module-ref:
+        required: true
+        type: string
   workflow_dispatch:
     inputs:
       module-ref:
