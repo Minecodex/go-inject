@@ -55,7 +55,7 @@ Unit and end-to-end checks must cover:
 
 Keep targeted behavioral assertions. A source snapshot or successful compile cannot replace an assertion that the injected behavior ran and the original behavior remained correct.
 
-Native CI uses verbose test output to retain cold/warm build times, compilation counts, and no-op allocation measurements. The **Remote installation** workflow separately installs the CLI and aggregate rule module by an immutable commit SHA before tagging, and by the release version afterward. It uses empty module/build caches, the public Go proxy and checksum database, and an application with no local `replace` directives. Both frozen Go versions must pass before publication.
+Native CI uses verbose test output to retain cold/warm build times, compilation counts, and no-op allocation measurements. The **Remote installation** workflow separately installs the CLI and aggregate rule module by an immutable commit SHA before tagging, and by the release version afterward. It uses empty module/build caches, the public Go proxy and checksum database, and an application with no local `replace` directives. All three frozen Go versions must pass before publication.
 
 ## Native integration regressions
 
@@ -72,4 +72,4 @@ These tests validate the generic injection tool. They do not establish SkyWalkin
 
 ## Required pull request checks
 
-The stable `CI` check aggregates the complete native and race matrices. See [pull requests and required CI](ci_EN.md).
+The stable `CI` check aggregates six native platforms and five race platforms on Go 1.27.1 for every PR. Version releases and manual `full=true` additionally require the full Go 1.25/1.26/1.27 matrix, the exact release archives, and remote installation. See [pull requests and required CI](ci_EN.md).

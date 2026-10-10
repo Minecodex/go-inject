@@ -21,7 +21,7 @@ python -m unittest discover -s scripts -p 'test_*.py'
 
 ## CI
 
-[CI](../.github/workflows/ci.yml) runs native tests and executable examples on six platforms with Go `1.26.8` and `1.27.1`, with `GOTOOLCHAIN=local`:
+[CI](../.github/workflows/ci.yml) runs native tests and executable examples on six platforms with Go `1.27.1` for each PR, with `GOTOOLCHAIN=local`. Release acceptance and manual `full=true` also run Go `1.25.8` and `1.26.8`:
 
 | OS/architecture | Runner | C compiler |
 |---|---|---|
@@ -36,7 +36,7 @@ Compiler setup prints the exact compiler version, compiles and runs a C program 
 
 Unix compiler directories are never prepended to PATH, so `/usr/bin/go` cannot override setup-go. Only Windows needs the GCC directory on PATH for runtime DLLs, and the selected Go directory remains ahead of it. A subsequent toolchain guard checks the actual Go executable, exact version, host and target OS/architecture, `GOTOOLCHAIN=local`, and expected CGO setting. The release build and archive-validation jobs apply the same guard.
 
-Separate five-platform jobs run `go test -race -timeout=30m ./internal/...` with both Go versions. They do not substitute cross-compilation for native execution. Linux amd64 additionally runs both Gin dependency baselines.
+Separate five-platform jobs run `go test -race -timeout=30m ./internal/...` with the same selected Go versions. They do not substitute cross-compilation for native execution. Linux amd64 additionally runs both Gin dependency baselines.
 
 ## Build archives locally
 
@@ -60,6 +60,6 @@ python scripts/verify_release.py --directory dist --version v0.1.0-beta.1 --comm
 
 The verifier checks `SHA256SUMS`, permits only the expected regular archive members, validates embedded version/commit and CGO-free Go 1.27.1 build metadata, then executes the extracted binary against the basic and HTTP examples. It does not rebuild the tool under test.
 
-[Release artifacts](../.github/workflows/release-artifacts.yml) builds once and downloads those same archives in twelve native validation jobs: six platforms, each with both supported Go versions. The workflow only uploads Actions artifacts with read-only repository permissions. It does not create, publish, or update a GitHub Release.
+[Release artifacts](../.github/workflows/release-artifacts.yml) requires the complete source matrix, builds once and downloads those same archives in eighteen native validation jobs: six platforms, each with all three supported Go versions. Remote installation of the immutable commit must also pass the `Release CI` gate. The workflow only uploads Actions artifacts with read-only repository permissions. It does not create, publish, or update a GitHub Release.
 
 For `v0.1.0-beta.1`, the public release title is `beta-0.1` and the release is a prerelease. Publish only after the workflow and the corresponding source CI results pass. Release publication and the nested rules-module tag are separate maintainer actions.
