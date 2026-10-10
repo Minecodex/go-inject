@@ -55,9 +55,11 @@ Unit and end-to-end checks must cover:
 
 Keep targeted behavioral assertions. A source snapshot or successful compile cannot replace an assertion that the injected behavior ran and the original behavior remained correct.
 
-Native CI uses verbose test output to retain cold/warm build times, compilation counts, and no-op allocation measurements. The **Remote installation** workflow separately installs the CLI and aggregate rule module by an immutable commit SHA before tagging, and by the release version afterward. It uses empty module/build caches, the public Go proxy and checksum database, and an application with no local `replace` directives. Both frozen Go versions must pass before publication.
+Native CI uses verbose test output to retain cold/warm build times, compilation counts, and no-op allocation measurements. The **Remote installation** workflow separately installs the CLI and aggregate rule module by an immutable commit SHA before tagging, and by the release version afterward. It uses empty module/build caches, the public Go proxy and checksum database, and an application with no local `replace` directives. All three frozen Go versions must pass before publication.
 
 ## Native integration regressions
+
+The daemon lifecycle fixture publishes its readiness marker by renaming a fully written PID file. File existence alone must not expose an empty PID before the child finishes writing. The test still verifies the daemon's cache working directory, immediate application-directory removal, and shutdown after the parent Go command exits.
 
 The E2E suite also covers imported/generic aliases, constant array lengths, generic receivers, real main helpers and internal test files. Vendor tests exercise generation, invalid-code rejection before directory delivery, relocation to another checkout, restoration, edited input protection and recovery around initial directory delivery. Compatible native entries share code; conflicting entry outputs fail. Coverage flags and injected dependency archives are exercised through native go test.
 
@@ -66,3 +68,8 @@ Opaque context tests exercise runtime storage, snapshot callbacks and typed brid
 ## Scope of the beta
 
 These tests validate the generic injection tool. They do not establish SkyWalking Agent compatibility, trace delivery, context propagation, telemetry performance, or OAP integration. Such integrations need their own runtime and end-to-end acceptance suites.
+
+
+## Required pull request checks
+
+The stable `CI` check aggregates six native platforms and five race platforms on Go 1.27.1 for every PR. Version releases and manual `full=true` additionally require the full Go 1.25/1.26/1.27 matrix, the exact release archives, and remote installation. See [pull requests and required CI](ci_EN.md).

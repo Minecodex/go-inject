@@ -122,3 +122,8 @@ python examples/check.py --tool bin/go-inject
 On Windows use `bin/go-inject.exe`. Tests use temporary projects and local servers with automatic ports. See [testing](docs/testing.md), [contributing](CONTRIBUTING.md), and [changes](CHANGELOG.md).
 
 The project draws on [Orchestrion](https://github.com/DataDog/orchestrion), [SkyWalking Go](https://github.com/apache/skywalking-go), [go-build-hijacking](https://github.com/0x2E/go-build-hijacking), and [Garble](https://github.com/burrowers/garble). Licensed under [Apache-2.0](LICENSE); distributions include [third-party notices](THIRD_PARTY_LICENSES.txt).
+
+
+## Contributing and CI
+
+Changes to the default branch require a pull request and passing CI. See [the branch protection and CI policy](docs/ci.md).

@@ -21,7 +21,7 @@ python -m unittest discover -s scripts -p 'test_*.py'
 
 ## CI
 
-[CI](../.github/workflows/ci.yml)在六个平台分别使用 Go `1.26.8`、`1.27.1` 运行原生测试和可执行示例，固定 `GOTOOLCHAIN=local`：
+[CI](../.github/workflows/ci.yml)在每个 PR 上使用 Go `1.27.1` 在六个平台运行原生测试和可执行示例，固定 `GOTOOLCHAIN=local`。发布验收与手动 `full=true` 同时验证 Go `1.25.8`、`1.26.8`：
 
 | 系统/架构 | Runner | C 编译器 |
 |---|---|---|
@@ -36,7 +36,7 @@ python -m unittest discover -s scripts -p 'test_*.py'
 
 Unix 不会把编译器目录前置到 PATH，避免 `/usr/bin/go` 覆盖 setup-go。只有 Windows 为 GCC 运行时 DLL 增加编译器目录，并保持所选 Go 目录优先。随后校验实际 Go 可执行文件、精确版本、主机和目标系统/架构、`GOTOOLCHAIN=local` 及预期 CGO 设置。发布构建和归档验证任务也执行同样的检查。
 
-独立五平台任务使用两个 Go 版本运行 `go test -race -timeout=30m ./internal/...`，不会用交叉编译代替原生执行。Linux amd64 额外验证两个 Gin 依赖基线。
+独立五平台任务使用相同选定的 Go 版本运行 `go test -race -timeout=30m ./internal/...`，不会用交叉编译代替原生执行。Linux amd64 额外验证两个 Gin 依赖基线。
 
 ## 本地构建归档
 
@@ -60,6 +60,6 @@ python scripts/verify_release.py --directory dist --version v0.1.0-beta.1 --comm
 
 验证器检查 `SHA256SUMS`，只接受预期的普通文件成员，验证内嵌版本、提交及无 CGO 的 Go 1.27.1 构建元数据，再使用解压出的原始二进制运行 basic 和 HTTP 示例，不会重新构建待测工具。
 
-[Release artifacts](../.github/workflows/release-artifacts.yml)只构建一次，并在十二个原生验证任务中下载同一批归档：六个平台分别使用两个支持的 Go 版本。工作流只上传 Actions artifacts，仓库权限为只读，不创建、公开或更新 GitHub Release。
+[Release artifacts](../.github/workflows/release-artifacts.yml)先要求完整源码矩阵通过，再只构建一次，并在十八个原生验证任务中下载同一批归档：六个平台分别使用三个支持的 Go 版本。固定提交的远程安装也必须通过 Release CI 门槛。工作流只上传 Actions artifacts，仓库权限为只读，不创建、公开或更新 GitHub Release。
 
 `v0.1.0-beta.1` 的公开标题为 `beta-0.1`，标记 prerelease。对应工作流及源码 CI 通过后再发布。Release 公开和嵌套规则模块标签由维护者单独操作。

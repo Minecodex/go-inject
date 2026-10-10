@@ -25,7 +25,10 @@ func TestNativeDaemonDoesNotHoldApplicationDirectory(t *testing.T) {
 import("os";"strconv";"testing";"time")
 func TestHeld(t *testing.T){
  if Value()!=2{t.Fatal("missing injection")}
- if err:=os.WriteFile("ready",[]byte(strconv.Itoa(os.Getppid())),0600);err!=nil{t.Fatal(err)}
+ // Publish readiness only after the parent PID has been completely written.
+ // A visible empty file would let the observer race os.WriteFile on Windows.
+ if err:=os.WriteFile("ready.pending",[]byte(strconv.Itoa(os.Getppid())),0600);err!=nil{t.Fatal(err)}
+ if err:=os.Rename("ready.pending","ready");err!=nil{t.Fatal(err)}
  for {if _,err:=os.Stat("release");err==nil{return};time.Sleep(10*time.Millisecond)}
 }
 `,
