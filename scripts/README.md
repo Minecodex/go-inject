@@ -21,7 +21,7 @@ python -m unittest discover -s scripts -p 'test_*.py'
 
 ## CI
 
-[CI](../.github/workflows/ci.yml) runs native tests and executable examples on six platforms with Go `1.27.1` for each PR, with `GOTOOLCHAIN=local`. Release acceptance and manual `full=true` also run Go `1.25.8` and `1.26.8`:
+[CI](../.github/workflows/ci.yml) runs native unit/compiler E2E, executable examples and race tests on Linux amd64, Windows amd64 and macOS arm64 with Go `1.27.1` for each PR. The other three architectures get compile-only smoke checks, which do not certify native execution. `GOTOOLCHAIN=local` remains fixed. Release acceptance and manual `full=true` run all six native platforms and five race platforms on Go `1.25.8`, `1.26.8` and `1.27.1`:
 
 | OS/architecture | Runner | C compiler |
 |---|---|---|
