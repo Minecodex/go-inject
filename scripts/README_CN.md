@@ -21,7 +21,7 @@ python -m unittest discover -s scripts -p 'test_*.py'
 
 ## CI
 
-[CI](../.github/workflows/ci.yml)在每个 PR 上使用 Go `1.27.1` 在六个平台运行原生测试和可执行示例，固定 `GOTOOLCHAIN=local`。发布验收与手动 `full=true` 同时验证 Go `1.25.8`、`1.26.8`：
+[CI](../.github/workflows/ci.yml)在每个 PR 上使用 Go `1.27.1` 在 Linux amd64、Windows amd64、macOS arm64 运行原生测试、真实编译器 E2E、可执行示例及 race；其他三种架构执行编译冒烟。编译冒烟不表示原生运行通过。固定 `GOTOOLCHAIN=local`。发布验收与手动 `full=true` 才执行六种原生平台和五种 race 平台的 Go `1.25.8` / `1.26.8` / `1.27.1` 完整矩阵：
 
 | 系统/架构 | Runner | C 编译器 |
 |---|---|---|

@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches: [master]
-    tags: ['v*', 'examples/rules/v*']
+    tags: ['examples/rules/v*']
   pull_request:
     branches: [master]
   workflow_dispatch:
@@ -31,7 +31,7 @@ env:
 
 jobs:
   native:
-    name: ${{ matrix.platform.goos }}/${{ matrix.platform.goarch }} · Go ${{ matrix.go }}
+    name: ${{ matrix.platform.goos }}/${{ matrix.platform.goarch }} 路 Go ${{ matrix.go }}
     runs-on: ${{ matrix.platform.runner }}
     timeout-minutes: 60
     strategy:
@@ -39,13 +39,7 @@ jobs:
       max-parallel: 6
       matrix:
         go: ${{ fromJSON((inputs.full || startsWith(github.ref, 'refs/tags/')) && '["1.25.8","1.26.8","1.27.1"]' || '["1.27.1"]') }}
-        platform:
-          - {runner: ubuntu-24.04, goos: linux, goarch: amd64, arch: x64, cgo: true}
-          - {runner: ubuntu-24.04-arm, goos: linux, goarch: arm64, arch: arm64, cgo: true}
-          - {runner: windows-2025, goos: windows, goarch: amd64, arch: x64, cgo: true}
-          - {runner: windows-11-arm, goos: windows, goarch: arm64, arch: arm64, cgo: false}
-          - {runner: macos-15-intel, goos: darwin, goarch: amd64, arch: x64, cgo: true}
-          - {runner: macos-15, goos: darwin, goarch: arm64, arch: arm64, cgo: true}
+        platform: ${{ fromJSON((inputs.full || startsWith(github.ref, 'refs/tags/')) && '[{"runner":"ubuntu-24.04","goos":"linux","goarch":"amd64","arch":"x64","cgo":true},{"runner":"ubuntu-24.04-arm","goos":"linux","goarch":"arm64","arch":"arm64","cgo":true},{"runner":"windows-2025","goos":"windows","goarch":"amd64","arch":"x64","cgo":true},{"runner":"windows-11-arm","goos":"windows","goarch":"arm64","arch":"arm64","cgo":false},{"runner":"macos-15-intel","goos":"darwin","goarch":"amd64","arch":"x64","cgo":true},{"runner":"macos-15","goos":"darwin","goarch":"arm64","arch":"arm64","cgo":true}]' || '[{"runner":"ubuntu-24.04","goos":"linux","goarch":"amd64","arch":"x64","cgo":true},{"runner":"windows-2025","goos":"windows","goarch":"amd64","arch":"x64","cgo":true},{"runner":"macos-15","goos":"darwin","goarch":"arm64","arch":"arm64","cgo":true}]') }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -89,19 +83,14 @@ jobs:
         run: python examples/check.py gin external --gin-version v1.12.0 --tool bin/go-inject
 
   race:
-    name: Race · ${{ matrix.platform.goos }}/${{ matrix.platform.goarch }} · Go ${{ matrix.go }}
+    name: Race 路 ${{ matrix.platform.goos }}/${{ matrix.platform.goarch }} 路 Go ${{ matrix.go }}
     runs-on: ${{ matrix.platform.runner }}
     timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix:
         go: ${{ fromJSON((inputs.full || startsWith(github.ref, 'refs/tags/')) && '["1.25.8","1.26.8","1.27.1"]' || '["1.27.1"]') }}
-        platform:
-          - {runner: ubuntu-24.04, goos: linux, goarch: amd64, arch: x64}
-          - {runner: ubuntu-24.04-arm, goos: linux, goarch: arm64, arch: arm64}
-          - {runner: windows-2025, goos: windows, goarch: amd64, arch: x64}
-          - {runner: macos-15-intel, goos: darwin, goarch: amd64, arch: x64}
-          - {runner: macos-15, goos: darwin, goarch: arm64, arch: arm64}
+        platform: ${{ fromJSON((inputs.full || startsWith(github.ref, 'refs/tags/')) && '[{"runner":"ubuntu-24.04","goos":"linux","goarch":"amd64","arch":"x64"},{"runner":"ubuntu-24.04-arm","goos":"linux","goarch":"arm64","arch":"arm64"},{"runner":"windows-2025","goos":"windows","goarch":"amd64","arch":"x64"},{"runner":"macos-15-intel","goos":"darwin","goarch":"amd64","arch":"x64"},{"runner":"macos-15","goos":"darwin","goarch":"arm64","arch":"arm64"}]' || '[{"runner":"ubuntu-24.04","goos":"linux","goarch":"amd64","arch":"x64"},{"runner":"windows-2025","goos":"windows","goarch":"amd64","arch":"x64"},{"runner":"macos-15","goos":"darwin","goarch":"arm64","arch":"arm64"}]') }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -122,23 +111,53 @@ jobs:
       - name: Core, transaction, and process race tests
         run: go test -race -timeout=30m ./internal/...
 
+  architecture-smoke:
+    name: Compile · ${{ matrix.goos }}/${{ matrix.goarch }}
+    if: ${{ !inputs.full && !startsWith(github.ref, 'refs/tags/') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {goos: linux, goarch: arm64}
+          - {goos: windows, goarch: arm64}
+          - {goos: darwin, goarch: amd64}
+    env:
+      GOOS: ${{ matrix.goos }}
+      GOARCH: ${{ matrix.goarch }}
+      CGO_ENABLED: '0'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version: '1.27.1'
+          cache-dependency-path: go.sum
+      - name: Compile the additional supported architecture
+        run: |
+          mkdir -p "build/$GOOS-$GOARCH"
+          go build -trimpath -o "build/$GOOS-$GOARCH/go-inject" ./cmd/go-inject
+
   ci-gate:
     name: CI
     if: ${{ always() }}
-    needs: ["native", "race"]
+    needs: ["native", "race", "architecture-smoke"]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Require every mandatory job to succeed
         env:
           JOB_RESULTS: ${{ toJSON(needs) }}
+          FULL_ACCEPTANCE: ${{ inputs.full || startsWith(github.ref, 'refs/tags/') }}
         run: |
           python3 - <<'PY'
           import json
           import os
           import sys
 
-          optional = set([])
+          optional = {"architecture-smoke"} if os.environ["FULL_ACCEPTANCE"] == "true" else set()
           jobs = json.loads(os.environ["JOB_RESULTS"])
           failed = {
               name: job["result"]

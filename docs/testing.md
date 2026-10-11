@@ -72,4 +72,4 @@ These tests validate the generic injection tool. They do not establish SkyWalkin
 
 ## Required pull request checks
 
-The stable `CI` check aggregates six native platforms and five race platforms on Go 1.27.1 for every PR. Version releases and manual `full=true` additionally require the full Go 1.25/1.26/1.27 matrix, the exact release archives, and remote installation. See [pull requests and required CI](ci_EN.md).
+The stable `CI` check aggregates three core native platforms plus compile-only checks for the remaining architectures and race checks on the same three native platforms on Go 1.27.1 for every PR. Version releases and manual `full=true` additionally require the full Go 1.25/1.26/1.27 matrix, the exact release archives, and remote installation. See [pull requests and required CI](ci_EN.md).
